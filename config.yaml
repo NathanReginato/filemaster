@@ -1,0 +1,14 @@
+root-directory: "/Users/nathanreginato/Pictures/photoTest"
+file-structure:
+  - year
+  - event
+  - month-day
+  - camera-type
+  - photo-video
+process:
+  - File type
+  - Bests
+  - Instagram
+
+# device-aliases: 
+#   - smasung: Smart Phone
