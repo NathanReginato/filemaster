@@ -1,0 +1,9 @@
+github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21 h1:moSC7ACaTejHmVRRwfDTMgByRSwjg2vZooncdWLj7o8=
+github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21/go.mod h1:NtXa9WwQsukMHZpjNakTTz0LArxvGYdPA9CjIcUSZ6s=
+github.com/gen2brain/dlgs v0.0.0-20180629122906-342edb4c68c1 h1:16o0LcrCHuKADRSOTYxoXTRQpdVo9BDeABauof+9Em8=
+github.com/gen2brain/dlgs v0.0.0-20180629122906-342edb4c68c1/go.mod h1:/eFcjDXaU2THSOOqLxOPETIbHETnamk8FA/hMjhg/gU=
+github.com/xor-gate/goexif2 v1.1.0 h1:OvTZ5iEvsDhRWFjV5xY3wT7uHFna28nSSP7ucau+cXQ=
+github.com/xor-gate/goexif2 v1.1.0/go.mod h1:eRjn3VSkAwpNpxEx/CGmd0zg0JFGL3akrSMxnJ581AY=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
+gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
