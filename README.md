@@ -8,7 +8,6 @@ This is the read me (must read)
 To create an application correctly for apple devices, adhere to the followign folder structure
 
 ```
-$ tree Caddy.app
 Filemaster.app/
 └── Contents
     ├── Info.plist
@@ -16,7 +15,6 @@ Filemaster.app/
     │   └── filemaster
     └── Resources
         └── icon.icns
-3 directories, 3 files
 ```
 
 This [article](https://medium.com/@mattholt/packaging-a-go-application-for-macos-f7084b00f6b5) was very helpful.
