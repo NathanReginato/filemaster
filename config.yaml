@@ -5,10 +5,13 @@ file-structure:
   - month-day
   - camera-type
   - photo-video
-process:
+photo-process:
   - File type
   - Bests
   - Instagram
-
+video-process:
+  - File type
+  - Bests
+  - Instagram
 # device-aliases: 
 #   - smasung: Smart Phone
