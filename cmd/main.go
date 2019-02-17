@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -18,11 +17,11 @@ import (
 	"github.com/NathanReginato/filemaster/config"
 
 	"github.com/NathanReginato/filemaster/activity"
-	"github.com/barsanuphe/goexiftool"
 )
 
 var (
 	notify *notificator.Notificator
+	conf   *config.Config
 )
 
 func main() {
@@ -30,55 +29,42 @@ func main() {
 	// Set up logger for debugging purposes (turn into flag)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	// Get configuration for app
+	var err error
+	conf, err = config.New()
+	if err != nil {
+		log.Error().Msgf("loading config failed: %v", err)
+	}
+	log.Debug().Msgf("loaded config file")
+
 	// Get file path strings from user input
 	ps, err := path.Get()
 	if err != nil {
-		log.Error().Msgf("Failed to retrieve file paths: %v", err)
+		log.Error().Msgf("failed to retrieve file paths: %v", err)
 	}
-	log.Debug().Msgf("Retrived %d files from user", len(ps))
+	log.Debug().Msgf("retrived %d files from user", len(ps))
 
 	// Get the user activity for the given day
 	a, err := activity.Get()
 	if err != nil {
-		log.Error().Msgf("Failed to retrieve user activity: %v", err)
+		log.Error().Msgf("failed to retrieve user activity: %v", err)
 	}
-	log.Debug().Msgf("User activity collected: '%s'", *a)
+	log.Debug().Msgf("user activity collected: '%s'", *a)
 
 	// Iterate over files and copy them into folders
 	for _, p := range ps {
 
-		log.Debug().Msgf("Reading file: %s", p)
+		log.Debug().Msgf("reading file: %s", p)
 
 		f, err := file.New(p)
 		if err != nil {
-			log.Error().Msgf("Failed to create file `%s` from path: %v", p, err)
+			log.Error().Msgf("failed to create file `%s` from path: %v", p, err)
 		}
-
-		t, _ := f.GetType()
-
-		fmt.Println("Media Type: ", *t)
 
 		copyMedia(f, *a)
 	}
 
 	notifyFinished()
-}
-
-func notifyFinished() {
-	notify = notificator.New(notificator.Options{
-		DefaultIcon: "icon/default.png",
-		AppName:     "Organizer",
-	})
-
-	notify.Push("Organizer", "File Organization Complete", "/home/user/icon.png", notificator.UR_CRITICAL)
-}
-
-func getDate(mediaFile *goexiftool.MediaFile) {
-	date, err := mediaFile.GetDate()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Date: ", date)
 }
 
 func copyMedia(f file.File, activity string) {
@@ -116,12 +102,7 @@ const (
 
 func buildDirectoryStructure(f file.File, activity string) string {
 
-	c, err := config.New()
-	if err != nil {
-		log.Error().Msgf("loading config failed: %v", err)
-	}
-
-	structure := c.GetStructure()
+	structure := conf.GetStructure()
 
 	path := "/"
 
@@ -182,7 +163,16 @@ func buildDirectoryStructure(f file.File, activity string) string {
 		}
 	}
 
-	os.MkdirAll(c.GetWorkspace()+path, os.ModePerm)
+	os.MkdirAll(conf.GetWorkspace()+path, os.ModePerm)
 
-	return c.GetWorkspace() + path + f.GetName()
+	return conf.GetWorkspace() + path + f.GetName()
+}
+
+func notifyFinished() {
+	notify = notificator.New(notificator.Options{
+		DefaultIcon: "icon/default.png",
+		AppName:     "Organizer",
+	})
+
+	notify.Push("Organizer", "File Organization Complete", "/home/user/icon.png", notificator.UR_CRITICAL)
 }
