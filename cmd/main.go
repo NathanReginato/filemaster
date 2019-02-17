@@ -13,7 +13,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/0xAX/notificator"
-	"github.com/NathanReginato/filemaster/filepath"
+	"github.com/NathanReginato/filemaster/path"
+
+	"github.com/NathanReginato/filemaster/file"
 
 	"github.com/NathanReginato/filemaster/activity"
 	"github.com/barsanuphe/goexiftool"
@@ -30,34 +32,34 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	// Get file path strings from user input
-	fs, err := filepath.Get()
+	ps, err := path.Get()
 	if err != nil {
-		log.Error().Msgf("Filed to retrieve file paths: %v", err)
+		log.Error().Msgf("Failed to retrieve file paths: %v", err)
 	}
-	log.Debug().Msgf("Retrived %d files from user", len(fs))
+	log.Debug().Msgf("Retrived %d files from user", len(ps))
 
 	// Get the user activity for the given day
 	a, err := activity.Get()
 	if err != nil {
-		log.Error().Msgf("Filed to retrieve user activity: %v", err)
+		log.Error().Msgf("Failed to retrieve user activity: %v", err)
 	}
 	log.Debug().Msgf("User activity collected: '%s'", *a)
 
 	// Iterate over files and copy them into folders
-	for _, f := range fs {
+	for _, p := range ps {
 
-		log.Debug().Msgf("Reading file: %s", f)
+		log.Debug().Msgf("Reading file: %s", p)
 
-		mediaFile, err := goexiftool.NewMediaFile(f)
+		f, err := file.New(p)
 		if err != nil {
-			panic(err)
+			log.Error().Msgf("Failed to create file `%s` from path: %v", p, err)
 		}
 
-		mediaType := getFileType(mediaFile)
+		t, _ := f.GetType()
 
-		fmt.Println("Media Type: ", mediaType)
+		fmt.Println("Media Type: ", t)
 
-		copyMedia(mediaFile, *a)
+		copyMedia(f.Get(), *a)
 	}
 
 	notifyFinished()
@@ -70,33 +72,6 @@ func notifyFinished() {
 	})
 
 	notify.Push("Organizer", "File Organization Complete", "/home/user/icon.png", notificator.UR_CRITICAL)
-}
-
-type mediaType int
-
-const (
-	video mediaType = 0
-	image mediaType = 1
-)
-
-func getFileType(mediaFile *goexiftool.MediaFile) mediaType {
-	mime, err := mediaFile.Get("MIME Type")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("MIME Type: ", mime)
-
-	mimeType := strings.Split(mime, "/")[0]
-	fmt.Println("Parsed MIME Type: ", mimeType)
-
-	mimeT := image
-
-	if mimeType == "image" {
-		mimeT = image
-	} else {
-		mimeT = video
-	}
-	return mimeT
 }
 
 func getDate(mediaFile *goexiftool.MediaFile) {
