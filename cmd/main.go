@@ -11,8 +11,10 @@ import (
 	"strings"
 
 	"github.com/0xAX/notificator"
+	"github.com/NathanReginato/filemaster/file"
+
+	"github.com/NathanReginato/filemaster/activity"
 	"github.com/barsanuphe/goexiftool"
-	"github.com/gen2brain/dlgs"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -20,24 +22,18 @@ var notify *notificator.Notificator
 
 func main() {
 
-	files, _, err := dlgs.FileMulti("Select files", "")
+	// Get file path strings from user input
+	files, err := file.Get()
 	if err != nil {
 		panic(err)
 	}
 
-	printFileMetaData(files)
-}
+	// Get the user activity for the given day
+	activity, err := activity.Get()
+	if err != nil {
+		panic(err)
+	}
 
-type mediaType int
-
-const (
-	video mediaType = 0
-	image mediaType = 1
-)
-
-func printFileMetaData(files []string) {
-
-	activity := getUserActivity()
 	fmt.Println(activity)
 
 	for _, v := range files {
@@ -46,13 +42,13 @@ func printFileMetaData(files []string) {
 
 		fmt.Println("Media Type: ", mediaType)
 
-		if mediaType == image {
-			handleImage(mediaFile, activity)
-		} else {
-			handleVideo(mediaFile, activity)
-		}
+		copyMedia(mediaFile, *activity)
 	}
 
+	notifyFinished()
+}
+
+func notifyFinished() {
 	notify = notificator.New(notificator.Options{
 		DefaultIcon: "icon/default.png",
 		AppName:     "Organizer",
@@ -70,6 +66,13 @@ func makeMediaFile(filePath string) *goexiftool.MediaFile {
 	}
 	return mediaFile
 }
+
+type mediaType int
+
+const (
+	video mediaType = 0
+	image mediaType = 1
+)
 
 func getFileType(mediaFile *goexiftool.MediaFile) mediaType {
 	mime, err := mediaFile.Get("MIME Type")
@@ -89,22 +92,6 @@ func getFileType(mediaFile *goexiftool.MediaFile) mediaType {
 		mimeT = video
 	}
 	return mimeT
-}
-
-func handleImage(mediaFile *goexiftool.MediaFile, activity string) {
-	// camera, err := mediaFile.GetCamera()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	copyMedia(mediaFile, activity)
-}
-
-func handleVideo(mediaFile *goexiftool.MediaFile, activity string) {
-	// camera, err := mediaFile.Get("Model")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	copyMedia(mediaFile, activity)
 }
 
 func getDate(mediaFile *goexiftool.MediaFile) {
@@ -261,13 +248,4 @@ func getNewFile(fileName string) string {
 	root := getRoot()
 
 	return root + "/" + fileName
-}
-
-func getUserActivity() string {
-	activity, _, err := dlgs.Entry("Activity", "What did you do today?", "")
-	if err != nil {
-		panic(err)
-	}
-
-	return activity
 }
