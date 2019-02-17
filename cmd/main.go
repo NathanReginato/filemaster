@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -17,9 +15,10 @@ import (
 
 	"github.com/NathanReginato/filemaster/file"
 
+	"github.com/NathanReginato/filemaster/config"
+
 	"github.com/NathanReginato/filemaster/activity"
 	"github.com/barsanuphe/goexiftool"
-	yaml "gopkg.in/yaml.v2"
 )
 
 var (
@@ -84,12 +83,7 @@ func getDate(mediaFile *goexiftool.MediaFile) {
 
 func copyMedia(f file.File, activity string) {
 
-	fileName := f.GetName()
 	newFile := buildDirectoryStructure(f, activity)
-
-	fmt.Println("Filename: ", fileName)
-
-	fmt.Println("New File : ", newFile)
 
 	from, err := os.Open(f.GetPath())
 
@@ -122,8 +116,12 @@ const (
 
 func buildDirectoryStructure(f file.File, activity string) string {
 
-	config := getConfig()
-	structure := config.Structure
+	c, err := config.New()
+	if err != nil {
+		log.Error().Msgf("loading config failed: %v", err)
+	}
+
+	structure := c.GetStructure()
 
 	path := "/"
 
@@ -184,43 +182,7 @@ func buildDirectoryStructure(f file.File, activity string) string {
 		}
 	}
 
-	os.MkdirAll(getRoot()+path, os.ModePerm)
+	os.MkdirAll(c.GetWorkspace()+path, os.ModePerm)
 
-	return getRoot() + path + f.GetName()
-}
-
-type config struct {
-	Root      string   `yaml:"root-directory"`
-	Structure []string `yaml:"file-structure"`
-	Process   []string `yaml:"process"`
-}
-
-func getConfig() config {
-	t := config{}
-
-	absPath, _ := filepath.Abs("./config.yaml")
-
-	dat, err := ioutil.ReadFile(absPath)
-	if err != nil {
-		panic(err)
-	}
-
-	yamlerr := yaml.Unmarshal([]byte(dat), &t)
-	if yamlerr != nil {
-		panic(yamlerr)
-	}
-
-	return t
-}
-
-func getRoot() string {
-	config := getConfig()
-
-	return config.Root
-}
-
-func getNewFile(fileName string) string {
-	root := getRoot()
-
-	return root + "/" + fileName
+	return c.GetWorkspace() + path + f.GetName()
 }

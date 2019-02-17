@@ -1,4 +1,4 @@
-root-directory: "/Users/nathanreginato/Pictures/photoTest"
+workspace: "/Users/nathanreginato/Pictures/photoTest"
 file-structure:
   - year
   - event
