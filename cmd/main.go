@@ -9,19 +9,15 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/0xAX/notificator"
-	"github.com/NathanReginato/filemaster/path"
-
-	"github.com/NathanReginato/filemaster/file"
-
-	"github.com/NathanReginato/filemaster/config"
-
 	"github.com/NathanReginato/filemaster/activity"
+	"github.com/NathanReginato/filemaster/config"
+	"github.com/NathanReginato/filemaster/file"
+	"github.com/NathanReginato/filemaster/input"
+	"github.com/NathanReginato/filemaster/notify"
 )
 
 var (
-	notify *notificator.Notificator
-	conf   *config.Config
+	conf *config.Config
 )
 
 func main() {
@@ -38,11 +34,11 @@ func main() {
 	log.Debug().Msgf("loaded config file")
 
 	// Get file path strings from user input
-	ps, err := path.Get()
+	i, err := input.Get()
 	if err != nil {
 		log.Error().Msgf("failed to retrieve file paths: %v", err)
 	}
-	log.Debug().Msgf("retrived %d files from user", len(ps))
+	log.Debug().Msgf("retrived %d files from user", len(i))
 
 	// Get the user activity for the given day
 	a, err := activity.Get()
@@ -52,7 +48,7 @@ func main() {
 	log.Debug().Msgf("user activity collected: '%s'", *a)
 
 	// Iterate over files and copy them into folders
-	for _, p := range ps {
+	for _, p := range i {
 
 		log.Debug().Msgf("reading file: %s", p)
 
@@ -64,7 +60,7 @@ func main() {
 		copyMedia(f, *a)
 	}
 
-	notifyFinished()
+	notify.Finished()
 }
 
 func copyMedia(f file.File, activity string) {
@@ -166,13 +162,4 @@ func buildDirectoryStructure(f file.File, activity string) string {
 	os.MkdirAll(conf.GetWorkspace()+path, os.ModePerm)
 
 	return conf.GetWorkspace() + path + f.GetName()
-}
-
-func notifyFinished() {
-	notify = notificator.New(notificator.Options{
-		DefaultIcon: "icon/default.png",
-		AppName:     "Organizer",
-	})
-
-	notify.Push("Organizer", "File Organization Complete", "/home/user/icon.png", notificator.UR_CRITICAL)
 }

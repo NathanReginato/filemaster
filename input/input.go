@@ -1,4 +1,4 @@
-package path
+package input
 
 import (
 	"github.com/gen2brain/dlgs"
