@@ -57,9 +57,9 @@ func main() {
 
 		t, _ := f.GetType()
 
-		fmt.Println("Media Type: ", t)
+		fmt.Println("Media Type: ", *t)
 
-		copyMedia(f.Get(), *a)
+		copyMedia(f, *a)
 	}
 
 	notifyFinished()
@@ -82,16 +82,16 @@ func getDate(mediaFile *goexiftool.MediaFile) {
 	fmt.Println("Date: ", date)
 }
 
-func copyMedia(mediaFile *goexiftool.MediaFile, activity string) {
+func copyMedia(f file.File, activity string) {
 
-	fileName := getNewFileName(mediaFile.Filename)
-	newFile := buildDirectoryStructure(mediaFile, activity)
+	fileName := f.GetName()
+	newFile := buildDirectoryStructure(f, activity)
 
 	fmt.Println("Filename: ", fileName)
 
 	fmt.Println("New File : ", newFile)
 
-	from, err := os.Open(mediaFile.Filename)
+	from, err := os.Open(f.GetPath())
 
 	if err != nil {
 		log.Print(err)
@@ -110,11 +110,6 @@ func copyMedia(mediaFile *goexiftool.MediaFile, activity string) {
 	}
 }
 
-func getNewFileName(filePath string) string {
-	path := strings.Split(filePath, "/")
-	return path[len(path)-1]
-}
-
 type directoryLevel string
 
 const (
@@ -125,7 +120,7 @@ const (
 	mediatype  directoryLevel = "photo-video"
 )
 
-func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) string {
+func buildDirectoryStructure(f file.File, activity string) string {
 
 	config := getConfig()
 	structure := config.Structure
@@ -136,7 +131,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 		switch directoryLevel {
 		case "year":
 
-			date, err := mediaFile.GetDate()
+			date, err := f.Get().GetDate()
 			if err != nil {
 				log.Print(err)
 			}
@@ -149,7 +144,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 			path += activity + "/"
 		case "month-day":
 
-			date, err := mediaFile.GetDate()
+			date, err := f.Get().GetDate()
 			if err != nil {
 				log.Print(err)
 			}
@@ -160,7 +155,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 
 			path += month + " " + strconv.Itoa(day) + "/"
 		case "camera-type":
-			mime, err := mediaFile.Get("MIME Type")
+			mime, err := f.Get().Get("MIME Type")
 			if err != nil {
 				panic(err)
 			}
@@ -168,20 +163,20 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 			mimeType := strings.Split(mime, "/")[0]
 
 			if mimeType == "image" {
-				camera, err := mediaFile.GetCamera()
+				camera, err := f.Get().GetCamera()
 				if err != nil {
 					panic(err)
 				}
 				path += camera + "/"
 			} else {
-				camera, err := mediaFile.Get("Model")
+				camera, err := f.Get().Get("Model")
 				if err != nil {
 					panic(err)
 				}
 				path += camera + "/"
 			}
 		case "photo-video":
-			mime, err := mediaFile.Get("MIME Type")
+			mime, err := f.Get().Get("MIME Type")
 			if err != nil {
 				panic(err)
 			}
@@ -191,7 +186,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 
 	os.MkdirAll(getRoot()+path, os.ModePerm)
 
-	return getRoot() + path + getNewFileName(mediaFile.Filename)
+	return getRoot() + path + f.GetName()
 }
 
 type config struct {
