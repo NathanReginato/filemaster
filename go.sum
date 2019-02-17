@@ -6,6 +6,8 @@ github.com/gen2brain/dlgs v0.0.0-20180629122906-342edb4c68c1 h1:16o0LcrCHuKADRSO
 github.com/gen2brain/dlgs v0.0.0-20180629122906-342edb4c68c1/go.mod h1:/eFcjDXaU2THSOOqLxOPETIbHETnamk8FA/hMjhg/gU=
 github.com/robmurtha/expose v0.0.0-20170216183221-2cd28d82c61c h1:YTkpsWI9/REZ0LZXQEq3rJbHKTUmsAYWrmOaIsUFR0I=
 github.com/robmurtha/expose v0.0.0-20170216183221-2cd28d82c61c/go.mod h1:zMrLdUlVk3f9USCnNzm27+n+3WftEBOUpCcJF33YpVA=
+github.com/rs/zerolog v1.11.0 h1:DRuq/S+4k52uJzBQciUcofXx45GrMC6yrEbb/CoK6+M=
+github.com/rs/zerolog v1.11.0/go.mod h1:YbFCdg8HfsridGWAh22vktObvhZbQsZXe4/zB0OKkWU=
 github.com/xor-gate/goexif2 v1.1.0 h1:OvTZ5iEvsDhRWFjV5xY3wT7uHFna28nSSP7ucau+cXQ=
 github.com/xor-gate/goexif2 v1.1.0/go.mod h1:eRjn3VSkAwpNpxEx/CGmd0zg0JFGL3akrSMxnJ581AY=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

@@ -4,45 +4,60 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
 	"github.com/0xAX/notificator"
-	"github.com/NathanReginato/filemaster/file"
+	"github.com/NathanReginato/filemaster/filepath"
 
 	"github.com/NathanReginato/filemaster/activity"
 	"github.com/barsanuphe/goexiftool"
 	yaml "gopkg.in/yaml.v2"
 )
 
-var notify *notificator.Notificator
+var (
+	notify *notificator.Notificator
+)
 
 func main() {
 
+	// Set up logger for debugging purposes (turn into flag)
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	// Get file path strings from user input
-	files, err := file.Get()
+	fs, err := filepath.Get()
 	if err != nil {
-		panic(err)
+		log.Error().Msgf("Filed to retrieve file paths: %v", err)
 	}
+	log.Debug().Msgf("Retrived %d files from user", len(fs))
 
 	// Get the user activity for the given day
-	activity, err := activity.Get()
+	a, err := activity.Get()
 	if err != nil {
-		panic(err)
+		log.Error().Msgf("Filed to retrieve user activity: %v", err)
 	}
+	log.Debug().Msgf("User activity collected: '%s'", *a)
 
-	fmt.Println(activity)
+	// Iterate over files and copy them into folders
+	for _, f := range fs {
 
-	for _, v := range files {
-		mediaFile := makeMediaFile(v)
+		log.Debug().Msgf("Reading file: %s", f)
+
+		mediaFile, err := goexiftool.NewMediaFile(f)
+		if err != nil {
+			panic(err)
+		}
+
 		mediaType := getFileType(mediaFile)
 
 		fmt.Println("Media Type: ", mediaType)
 
-		copyMedia(mediaFile, *activity)
+		copyMedia(mediaFile, *a)
 	}
 
 	notifyFinished()
@@ -55,16 +70,6 @@ func notifyFinished() {
 	})
 
 	notify.Push("Organizer", "File Organization Complete", "/home/user/icon.png", notificator.UR_CRITICAL)
-}
-
-func makeMediaFile(filePath string) *goexiftool.MediaFile {
-
-	fmt.Println("File to be read: ", filePath)
-	mediaFile, err := goexiftool.NewMediaFile(filePath)
-	if err != nil {
-		panic(err)
-	}
-	return mediaFile
 }
 
 type mediaType int
@@ -114,19 +119,19 @@ func copyMedia(mediaFile *goexiftool.MediaFile, activity string) {
 	from, err := os.Open(mediaFile.Filename)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer from.Close()
 
 	to, err := os.OpenFile(newFile, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
 
@@ -158,7 +163,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 
 			date, err := mediaFile.GetDate()
 			if err != nil {
-				log.Fatal(err)
+				log.Print(err)
 			}
 
 			year := date.Year()
@@ -171,7 +176,7 @@ func buildDirectoryStructure(mediaFile *goexiftool.MediaFile, activity string) s
 
 			date, err := mediaFile.GetDate()
 			if err != nil {
-				log.Fatal(err)
+				log.Print(err)
 			}
 
 			month := date.Month().String()

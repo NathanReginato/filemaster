@@ -5,6 +5,7 @@ require (
 	github.com/barsanuphe/goexiftool v0.0.0-20180509224600-0e25a2871ba9
 	github.com/gen2brain/dlgs v0.0.0-20180629122906-342edb4c68c1
 	github.com/robmurtha/expose v0.0.0-20170216183221-2cd28d82c61c // indirect
+	github.com/rs/zerolog v1.11.0
 	github.com/xor-gate/goexif2 v1.1.0
 	gopkg.in/yaml.v2 v2.2.1
 )
