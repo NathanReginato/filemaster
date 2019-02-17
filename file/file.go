@@ -1,6 +1,7 @@
 package file
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -64,63 +65,53 @@ func (f *File) GetPath() string {
 	return f.path
 }
 
-type directoryLevel string
-
-const (
-	year       directoryLevel = "year"
-	event      directoryLevel = "event"
-	monthDay   directoryLevel = "month-day"
-	cameraType directoryLevel = "camera-type"
-	mediatype  directoryLevel = "photo-video"
-)
-
 func (f *File) Copy(dest string) error {
 
-	from, err := os.Open(f.GetPath())
-
+	p := f.GetPath()
+	from, err := os.Open(p)
 	if err != nil {
-		log.Print(err)
+		return fmt.Errorf("unable to open file %s: %v", p, err)
 	}
 	defer from.Close()
 
 	to, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		log.Print(err)
+		return fmt.Errorf("unable to create file %s: %v", p, err)
 	}
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
 	if err != nil {
-		log.Print(err)
+		return fmt.Errorf("unable to create copy data %s: %v", p, err)
 	}
 
 	return nil
 }
 
-func (f *File) GetDestination(activity *string) string {
+func (f *File) GetDestination(activity *string) (string, error) {
 
-	structure := f.config.GetStructure()
+	fi := f.Get()
+	s := f.config.GetStructure()
+	p := "/"
 
-	path := "/"
-
-	for _, directoryLevel := range structure {
-		switch directoryLevel {
+	for _, d := range s {
+		switch d {
 		case "year":
 
-			date, err := f.Get().GetDate()
+			d, err := fi.GetDate()
 			if err != nil {
 				log.Print(err)
 			}
 
-			year := date.Year()
+			year := d.Year()
 
-			path += strconv.Itoa(year) + "/"
+			p += strconv.Itoa(year) + "/"
 
 		case "event":
-			path += *activity + "/"
+			p += *activity + "/"
 		case "month-day":
 
-			date, err := f.Get().GetDate()
+			date, err := fi.GetDate()
 			if err != nil {
 				log.Print(err)
 			}
@@ -129,38 +120,36 @@ func (f *File) GetDestination(activity *string) string {
 
 			day := date.Day()
 
-			path += month + " " + strconv.Itoa(day) + "/"
+			p += month + " " + strconv.Itoa(day) + "/"
 		case "camera-type":
-			mime, err := f.Get().Get("MIME Type")
+			t, err := f.GetType()
 			if err != nil {
 				panic(err)
 			}
 
-			mimeType := strings.Split(mime, "/")[0]
-
-			if mimeType == "image" {
-				camera, err := f.Get().GetCamera()
+			if *t == "image" {
+				camera, err := fi.GetCamera()
 				if err != nil {
 					panic(err)
 				}
-				path += camera + "/"
+				p += camera + "/"
 			} else {
-				camera, err := f.Get().Get("Model")
+				camera, err := fi.Get("Model")
 				if err != nil {
 					panic(err)
 				}
-				path += camera + "/"
+				p += camera + "/"
 			}
 		case "photo-video":
-			mime, err := f.Get().Get("MIME Type")
+			mime, err := fi.Get("MIME Type")
 			if err != nil {
 				panic(err)
 			}
-			path += mime + "/"
+			p += mime + "/"
 		}
 	}
 
-	os.MkdirAll(f.config.GetWorkspace()+path, os.ModePerm)
+	os.MkdirAll(f.config.GetWorkspace()+p, os.ModePerm)
 
-	return f.config.GetWorkspace() + path + f.GetName()
+	return f.config.GetWorkspace() + p + f.GetName(), fmt.Errorf("")
 }
