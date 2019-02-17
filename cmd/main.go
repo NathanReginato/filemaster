@@ -1,10 +1,7 @@
 package main
 
 import (
-	"io"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -52,114 +49,17 @@ func main() {
 
 		log.Debug().Msgf("reading file: %s", p)
 
-		f, err := file.New(p)
+		f, err := file.New(conf, p)
 		if err != nil {
 			log.Error().Msgf("failed to create file `%s` from path: %v", p, err)
 		}
 
-		copyMedia(f, *a)
-	}
-
-	notify.Finished()
-}
-
-func copyMedia(f file.File, activity string) {
-
-	newFile := buildDirectoryStructure(f, activity)
-
-	from, err := os.Open(f.GetPath())
-
-	if err != nil {
-		log.Print(err)
-	}
-	defer from.Close()
-
-	to, err := os.OpenFile(newFile, os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		log.Print(err)
-	}
-	defer to.Close()
-
-	_, err = io.Copy(to, from)
-	if err != nil {
-		log.Print(err)
-	}
-}
-
-type directoryLevel string
-
-const (
-	year       directoryLevel = "year"
-	event      directoryLevel = "event"
-	monthDay   directoryLevel = "month-day"
-	cameraType directoryLevel = "camera-type"
-	mediatype  directoryLevel = "photo-video"
-)
-
-func buildDirectoryStructure(f file.File, activity string) string {
-
-	structure := conf.GetStructure()
-
-	path := "/"
-
-	for _, directoryLevel := range structure {
-		switch directoryLevel {
-		case "year":
-
-			date, err := f.Get().GetDate()
-			if err != nil {
-				log.Print(err)
-			}
-
-			year := date.Year()
-
-			path += strconv.Itoa(year) + "/"
-
-		case "event":
-			path += activity + "/"
-		case "month-day":
-
-			date, err := f.Get().GetDate()
-			if err != nil {
-				log.Print(err)
-			}
-
-			month := date.Month().String()
-
-			day := date.Day()
-
-			path += month + " " + strconv.Itoa(day) + "/"
-		case "camera-type":
-			mime, err := f.Get().Get("MIME Type")
-			if err != nil {
-				panic(err)
-			}
-
-			mimeType := strings.Split(mime, "/")[0]
-
-			if mimeType == "image" {
-				camera, err := f.Get().GetCamera()
-				if err != nil {
-					panic(err)
-				}
-				path += camera + "/"
-			} else {
-				camera, err := f.Get().Get("Model")
-				if err != nil {
-					panic(err)
-				}
-				path += camera + "/"
-			}
-		case "photo-video":
-			mime, err := f.Get().Get("MIME Type")
-			if err != nil {
-				panic(err)
-			}
-			path += mime + "/"
+		directory := f.GetDestination(a)
+		err = f.Copy(directory)
+		if err != nil {
+			log.Error().Msgf("failed to move file to directory: `%s`", directory)
 		}
 	}
 
-	os.MkdirAll(conf.GetWorkspace()+path, os.ModePerm)
-
-	return conf.GetWorkspace() + path + f.GetName()
+	notify.Finished()
 }
