@@ -31,10 +31,15 @@ func main() {
 	log.Debug().Msgf("loaded config file")
 
 	// Get file path strings from user input
-	i, err := input.Get()
+	i, c, err := input.Get()
 	if err != nil {
 		log.Error().Msgf("failed to retrieve file paths: %v", err)
 	}
+	if !*c {
+		log.Debug().Msg("user canceled operation")
+		os.Exit(3)
+	}
+
 	log.Debug().Msgf("retrived %d files from user", len(i))
 
 	var a *string

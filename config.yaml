@@ -5,6 +5,8 @@ file-structure:
   - month-day
   - camera-type
   - photo-video
+aliases:
+  x-canon-cr2: RAW
 photo-process:
   - File type
   - Bests
@@ -13,5 +15,3 @@ video-process:
   - File type
   - Bests
   - Instagram
-aliases:
-  x-canon-cr2: RAW
