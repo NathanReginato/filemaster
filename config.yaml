@@ -1,7 +1,7 @@
 workspace: "/Users/nathanreginato/Pictures/photoTest"
 file-structure:
   - year
-  - event
+#- event
   - month-day
   - camera-type
   - photo-video
@@ -13,5 +13,5 @@ video-process:
   - File type
   - Bests
   - Instagram
-# device-aliases: 
-#   - smasung: Smart Phone
+aliases:
+  x-canon-cr2: RAW

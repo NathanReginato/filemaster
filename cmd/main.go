@@ -37,12 +37,16 @@ func main() {
 	}
 	log.Debug().Msgf("retrived %d files from user", len(i))
 
-	// Get the user activity for the given day
-	a, err := activity.Get()
-	if err != nil {
-		log.Error().Msgf("failed to retrieve user activity: %v", err)
+	var a *string
+	if conf.HasDir("event") {
+		// Get the user activity for the given day
+		var err error
+		a, err = activity.Get()
+		if err != nil {
+			log.Error().Msgf("failed to retrieve user activity: %v", err)
+		}
+		log.Debug().Msgf("user activity collected: '%s'", *a)
 	}
-	log.Debug().Msgf("user activity collected: '%s'", *a)
 
 	// Iterate over files and copy them into folders
 	for _, p := range i {
@@ -54,10 +58,10 @@ func main() {
 			log.Error().Msgf("failed to create file `%s` from path: %v", p, err)
 		}
 
-		directory := f.GetDestination(a)
-		err = f.Copy(directory)
+		directory, err := f.GetDestination(a)
+		err = f.Copy(*directory)
 		if err != nil {
-			log.Error().Msgf("failed to move file to directory: `%s`", directory)
+			log.Error().Msgf("failed to move file to directory: `%v`", err)
 		}
 	}
 

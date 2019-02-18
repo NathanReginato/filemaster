@@ -68,6 +68,9 @@ func (f *File) GetPath() string {
 func (f *File) Copy(dest string) error {
 
 	p := f.GetPath()
+
+	fmt.Printf("Original file path: %v", p)
+
 	from, err := os.Open(p)
 	if err != nil {
 		return fmt.Errorf("unable to open file %s: %v", p, err)
@@ -80,6 +83,8 @@ func (f *File) Copy(dest string) error {
 	}
 	defer to.Close()
 
+	fmt.Printf("Attempting copy from v% to %v", to, from)
+
 	_, err = io.Copy(to, from)
 	if err != nil {
 		return fmt.Errorf("unable to create copy data %s: %v", p, err)
@@ -88,11 +93,17 @@ func (f *File) Copy(dest string) error {
 	return nil
 }
 
-func (f *File) GetDestination(activity *string) (string, error) {
+func (f *File) GetDestination(activity *string) (*string, error) {
 
 	fi := f.Get()
 	s := f.config.GetStructure()
-	p := "/"
+	w := f.config.GetWorkspace()
+
+	p := []string{}
+
+	if len(s) == 0 {
+		return nil, fmt.Errorf("file-structure array has no elements, please check the config")
+	}
 
 	for _, d := range s {
 		switch d {
@@ -105,22 +116,24 @@ func (f *File) GetDestination(activity *string) (string, error) {
 
 			year := d.Year()
 
-			p += strconv.Itoa(year) + "/"
+			a := strconv.Itoa(year) + "/"
+
+			p = append(p, a)
 
 		case "event":
-			p += *activity + "/"
+			p = append(p, *activity)
 		case "month-day":
 
-			date, err := fi.GetDate()
+			d, err := fi.GetDate()
 			if err != nil {
 				log.Print(err)
 			}
 
-			month := date.Month().String()
+			month := d.Month().String()
+			day := strconv.Itoa(d.Day())
+			date := month + " " + day
 
-			day := date.Day()
-
-			p += month + " " + strconv.Itoa(day) + "/"
+			p = append(p, date)
 		case "camera-type":
 			t, err := f.GetType()
 			if err != nil {
@@ -132,24 +145,48 @@ func (f *File) GetDestination(activity *string) (string, error) {
 				if err != nil {
 					panic(err)
 				}
-				p += camera + "/"
+				p = append(p, camera)
 			} else {
 				camera, err := fi.Get("Model")
 				if err != nil {
 					panic(err)
 				}
-				p += camera + "/"
+				p = append(p, camera)
 			}
 		case "photo-video":
 			mime, err := fi.Get("MIME Type")
 			if err != nil {
 				panic(err)
 			}
-			p += mime + "/"
+
+			t := strings.Split(mime, "/")
+
+			kind := t[0]
+			fileType := t[1]
+
+			p = append(p, kind)
+			p = append(p, fileType)
 		}
 	}
 
-	os.MkdirAll(f.config.GetWorkspace()+p, os.ModePerm)
+	aliasedPath := f.replaceAliases(p)
 
-	return f.config.GetWorkspace() + p + f.GetName(), fmt.Errorf("")
+	path := "/" + strings.Join(aliasedPath, "/")
+	ab := w + path
+	np := ab + "/" + f.GetName()
+
+	os.MkdirAll(ab, os.ModePerm)
+
+	return &np, nil
+}
+
+func (f *File) replaceAliases(p []string) []string {
+	a := f.config.GetAlias()
+	for i, segment := range p {
+		if val, ok := a[segment]; ok {
+			p[i] = val
+		}
+	}
+
+	return p
 }
