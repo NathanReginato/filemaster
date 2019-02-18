@@ -65,11 +65,10 @@ func (f *File) GetPath() string {
 	return f.path
 }
 
+// Copy takes the file the method is called on, and copies it to the given directory
 func (f *File) Copy(dest string) error {
 
 	p := f.GetPath()
-
-	fmt.Printf("Original file path: %v", p)
 
 	from, err := os.Open(p)
 	if err != nil {
@@ -83,8 +82,6 @@ func (f *File) Copy(dest string) error {
 	}
 	defer to.Close()
 
-	fmt.Printf("Attempting copy from v% to %v", to, from)
-
 	_, err = io.Copy(to, from)
 	if err != nil {
 		return fmt.Errorf("unable to create copy data %s: %v", p, err)
@@ -93,6 +90,7 @@ func (f *File) Copy(dest string) error {
 	return nil
 }
 
+// GetDestination returns the calcualted path of the file based on the YAML configuration
 func (f *File) GetDestination(activity *string) (*string, error) {
 
 	fi := f.Get()
@@ -171,9 +169,9 @@ func (f *File) GetDestination(activity *string) (*string, error) {
 
 	aliasedPath := f.replaceAliases(p)
 
-	path := "/" + strings.Join(aliasedPath, "/")
+	path := string(os.PathSeparator) + strings.Join(aliasedPath, string(os.PathSeparator))
 	ab := w + path
-	np := ab + "/" + f.GetName()
+	np := ab + string(os.PathSeparator) + f.GetName()
 
 	os.MkdirAll(ab, os.ModePerm)
 
