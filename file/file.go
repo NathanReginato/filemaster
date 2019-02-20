@@ -151,19 +151,23 @@ func (f *File) GetDestination(activity *string) (*string, error) {
 				}
 				p = append(p, camera)
 			}
-		case "photo-video":
+		case "type":
 			mime, err := fi.Get("MIME Type")
 			if err != nil {
 				panic(err)
 			}
 
 			t := strings.Split(mime, "/")
+			p = append(p, t[0])
 
-			kind := t[0]
-			fileType := t[1]
+		case "ext":
+			mime, err := fi.Get("MIME Type")
+			if err != nil {
+				panic(err)
+			}
 
-			p = append(p, kind)
-			p = append(p, fileType)
+			t := strings.Split(mime, "/")
+			p = append(p, t[1])
 		}
 	}
 
