@@ -5,7 +5,7 @@ This is the read me (must read)
 
 # Apple .app packages
 
-To create an application correctly for apple devices, adhere to the followign folder structure
+To create an application correctly for apple devices, adhere to the following folder structure
 
 ```
 Filemaster.app/

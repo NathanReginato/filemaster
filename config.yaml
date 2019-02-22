@@ -1,11 +1,10 @@
 workspace: "/Users/nathanreginato/Pictures/photoTest"
 file-structure:
-  - month-day
-#- event
   - year
-  - type
+  - month-day
+  - event
   - camera-type
-  - ext
+  - type
   - ext
 aliases:
   x-canon-cr2: RAW
